@@ -1,14 +1,18 @@
 use v6;
 use SystemPackageManager::Abstract;
+use SystemPackageManager::Qualifier;
 
 class SystemPackageManager::xbps does SystemPackageManager::Abstract {
-  method does-qualify {
-    my $release-file = "/etc/os-release".IO;
-    if $release-file.f {
-      return True if $release-file.slurp ~~ /:i 'ID="void"'/;
-    }
-
-    False;
+  method get-qualifiers {
+    return [
+     SystemPackageManager::Qualifier.new(
+        type => "file-contents",
+        options => {
+          "regex" => /:i id\=\"?void\"?/,
+          "file" => "/etc/os-release"
+        }
+      )
+    ];
   }
 
   method is-distro-package-manager { True }

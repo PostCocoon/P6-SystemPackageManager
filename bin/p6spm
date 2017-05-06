@@ -2,7 +2,8 @@
 use v6;
 use SystemPackageManager;
 use Log::Any;
-use Log::Any::Adapter::Stdout;
+use Log::Any::Async;
+use Log::Any::Adapter::Stderr;
 use Log::Any::Formatter;
 
 class MyOwnFormatter is Log::Any::Formatter {
@@ -21,8 +22,7 @@ class MyOwnFormatter is Log::Any::Formatter {
 	}
 }
 
-Log::Any.add( Log::Any::Adapter::Stdout.new, :formatter(MyOwnFormatter.new) );
+Log::Any.add( Log::Any::Adapter::Stderr.new, :formatter(MyOwnFormatter.new) );
 my $spm = SystemPackageManager.new;
-exit(1) if !$spm.setup-for-this-system;
-
-$spm.sync();
+my $ay = !$spm.setup-for-this-system;
+# Log::Any::Async.stop;
