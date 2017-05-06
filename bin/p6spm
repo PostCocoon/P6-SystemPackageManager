@@ -1,0 +1,28 @@
+#!/usr/bin/env perl6
+use v6;
+use SystemPackageManager;
+use Log::Any;
+use Log::Any::Adapter::Stdout;
+use Log::Any::Formatter;
+
+class MyOwnFormatter is Log::Any::Formatter {
+	method format( :$date-time!, :$msg!, :$category!, :$severity! ) {
+    $severity //= "info";
+    my $color = "0";
+    my $colorBySeverity = {
+      info => 32,
+      error => 31,
+      debug => 34,
+    }
+
+    $color [R//]= $colorBySeverity{$severity};
+
+		return "\x1B[{$color}m" ~ '[' ~ $severity.lc ~ '] ' ~ $msg ~ "\x1B[0m";
+	}
+}
+
+Log::Any.add( Log::Any::Adapter::Stdout.new, :formatter(MyOwnFormatter.new) );
+my $spm = SystemPackageManager.new;
+exit(1) if !$spm.setup-for-this-system;
+
+$spm.sync();

@@ -1,0 +1,35 @@
+{
+  "name": "SystemPackageManager",
+  "source-url": "https://github.com/PostCocoon/P6-SystemPackageManager.git",
+  "support": {
+    "source": null
+  },
+  "perl": "6.c",
+  "resources": [
+
+  ],
+  "build-depends": [
+
+  ],
+  "auth": "github:PostCocoon",
+  "depends": [
+    "Test::META"
+  ],
+  "tags": [
+
+  ],
+  "license": "Artistic 2.0",
+  "test-depends": [
+
+  ],
+  "provides": {
+
+  },
+  "production": false,
+  "version": "0.0.1",
+  "authors": [
+    "eater <perl6@eaterofco.de>"
+  ],
+  "description": "",
+  "meta6": "0"
+}
