@@ -2,7 +2,6 @@
 use v6;
 use SystemPackageManager;
 use Log::Any;
-use Log::Any::Async;
 use Log::Any::Adapter::Stderr;
 use Log::Any::Formatter;
 
@@ -23,6 +22,69 @@ class MyOwnFormatter is Log::Any::Formatter {
 }
 
 Log::Any.add( Log::Any::Adapter::Stderr.new, :formatter(MyOwnFormatter.new) );
-my $spm = SystemPackageManager.new;
-my $ay = !$spm.setup-for-this-system;
-# Log::Any::Async.stop;
+
+sub MAIN(
+		$action,
+		*@items,
+		Str :$package-manager,
+	) {
+	my $spm = SystemPackageManager.new;
+
+	if defined $package-manager {
+		Log::Any.emergency("Can't continue") if !$spm.setup($package-manager);
+	} else {
+		Log::Any.emergency("Can't continue") if !$spm.setup-for-this-system;
+	}
+
+	given $action {
+		when 'sync' {
+			if ! await $spm.sync {
+				Log::Any.emergency('Failed to sync');
+				exit(1);
+			}
+		}
+
+		when 'install' {
+			if ! @items.elems > 0 {
+				Log::Any.emergency('No packages given to install');
+				exit(1);
+			}
+
+			if ! await $spm.install(@items) {
+				Log::Any.emergency('Failed to install: ' ~ @items.join(', '));
+				exit(1);
+			}
+		}
+
+		when 'remove' {
+			if ! @items.elems > 0 {
+				Log::Any.emergency('No packages given to remove');
+				exit(1);
+			}
+
+			if ! await $spm.remove(@items) {
+				Log::Any.emergency('Failed to remove: ' ~ @items.join(', '));
+				exit(1);
+			}
+		}
+
+		when 'is-installed' {
+			if @items.elems != 1 {
+				Log::Any.emergency('Can only check one package at the time');
+				exit(1);
+			}
+
+			my $item = @items.first;
+			if ! await $spm.is-installed($item) {
+				Log::Any.warning("$item is not installed");
+				exit(1);
+			} else {
+				Log::Any.info("$item is installed");
+			}
+		}
+	}
+}
+
+sub left() {
+
+}

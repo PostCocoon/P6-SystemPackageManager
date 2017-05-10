@@ -1,25 +1,35 @@
 use v6;
 use SystemPackageManager::Abstract;
+use SystemPackageManager::Controller;
+use SystemPackageManager::Qualifier;
 use SystemPackageManager::xbps;
-use Log::Any::Async;
+use Log::Any;
 
-class SystemPackageManager {
-  has $.available-package-managers = <
-    SystemPackageManager::xbps
-    SystemPackageManager::apt-get
-  >;
+class SystemPackageManager does SystemPackageManager::Controller {
+  has $.available-package-managers is rw = [
+    'SystemPackageManager::xbps',
+    'SystemPackageManager::apt-get'
+  ];
 
   has $.installed-package-managers is rw = [];
   has SystemPackageManager::Abstract $!selected;
 
-  method check-if-qualifies(@qualifiers) {
+  method check-if-qualifies(@qualifiers --> Promise) {
     start {
       my $qualifies = False;
       for @qualifiers -> $qualifier {
         given $qualifier.type {
-          when "file-contents" {
+          when file-contents {
             my $file = $qualifier.options<file>.IO;
             if $file.f and $file.slurp ~~ $qualifier.options<regex> {
+              $qualifies = True;
+              last;
+            }
+          }
+
+          when executable {
+            my $file = $qualifier.options<file>.IO;
+            if $file.f and $file.x {
               $qualifies = True;
               last;
             }
@@ -38,12 +48,12 @@ class SystemPackageManager {
       @promises.push: start {
         try require ::($package-manager);
         if ::($package-manager) ~~ Failure {
-          Log::Any::Async.debug("Couldn't find module {$package-manager}, skipping");
+          Log::Any.debug("Couldn't find module {$package-manager}, skipping");
         } elsif ::($package-manager).is-distro-package-manager() and await self.check-if-qualifies(::($package-manager).get-qualifiers()) {
-          Log::Any::Async.debug("{$package-manager} qualifies");
+          Log::Any.debug("{$package-manager} qualifies");
           $channel.send: $package-manager if !$channel.closed;
         } else {
-          Log::Any::Async.debug("{$package-manager} didn't qualify");
+          Log::Any.debug("{$package-manager} didn't qualify");
         }
       }
     }
@@ -63,11 +73,11 @@ class SystemPackageManager {
       $channel.send("");
       $channel.close();
       if ($pm-name ~~ Str) {
-        Log::Any::Async.info("Selected " ~ $pm-name ~ " as package manager for this system");
+        Log::Any.info("Selected " ~ $pm-name ~ " as package manager for this system");
         $!selected = ::($pm-name).new;
         True;
       } else {
-        Log::Any::Async.error("Couldn't find any fitting package manager for this system");
+        Log::Any.error("Couldn't find any fitting package manager for this system");
         False;
       }
     });
@@ -76,7 +86,7 @@ class SystemPackageManager {
 
   method ensure-root() {
     if $*USER.Int > 0 {
-      Log::Any::Async.error("Current package manager (" ~ $!selected.WHAT.^name ~ ") needs root, currently running as " ~ $*USER.Str);
+      Log::Any.error("Current package manager (" ~ $!selected.WHAT.^name ~ ") needs root, currently running as " ~ $*USER.Str);
       return False;
     }
 
@@ -89,7 +99,32 @@ class SystemPackageManager {
     True;
   }
 
-  method sync(Hash $options = {} --> Bool) {
-    $!selected.sync($options);
+  method setup ($package-manager, $is-absolute = True --> Bool) {
+    $module-name = ($is-absolute ?? "" !! self.^name "::") ~ $package-manager;
+    try require ::($module-name);
+
+    if ::($module-name) ~~ Failed {
+      Log::Any.error("Can't find the module " ~ $module-name);
+      False;
+    } else {
+      $!selected = ::($module-name).new;
+      True;
+    }
+  }
+
+  method do-install (List $packages, Hash $options --> Promise) {
+    $!selected.do-install($packages, $options);
+  }
+
+  method do-remove (List $packages, Hash $options --> Promise) {
+    $!selected.do-remove($packages, $options);
+  }
+
+  method do-sync (Hash $options --> Promise) {
+    $!selected.do-sync($options)
+  }
+
+  method do-is-installed (Str $package, Hash $options --> Promise) {
+    $!selected.do-is-installed($package, $options)
   }
 }
