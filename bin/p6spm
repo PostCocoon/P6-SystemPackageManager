@@ -31,7 +31,7 @@ sub MAIN(
 	my $spm = SystemPackageManager.new;
 
 	if defined $package-manager {
-		Log::Any.emergency("Can't continue") if !$spm.setup($package-manager);
+		Log::Any.emergency("Can't continue") if !$spm.setup($package-manager, $package-manager ~~ "::");
 	} else {
 		Log::Any.emergency("Can't continue") if !$spm.setup-for-this-system;
 	}
@@ -83,8 +83,4 @@ sub MAIN(
 			}
 		}
 	}
-}
-
-sub left() {
-
 }

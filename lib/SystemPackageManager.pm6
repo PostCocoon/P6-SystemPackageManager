@@ -100,10 +100,10 @@ class SystemPackageManager does SystemPackageManager::Controller {
   }
 
   method setup ($package-manager, $is-absolute = True --> Bool) {
-    $module-name = ($is-absolute ?? "" !! self.^name "::") ~ $package-manager;
+    my $module-name = ($is-absolute ?? "" !! self.^name ~ "::") ~ $package-manager;
     try require ::($module-name);
 
-    if ::($module-name) ~~ Failed {
+    if ::($module-name) ~~ Failure {
       Log::Any.error("Can't find the module " ~ $module-name);
       False;
     } else {

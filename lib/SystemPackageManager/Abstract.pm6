@@ -19,6 +19,9 @@ role SystemPackageManager::Abstract does SystemPackageManager::Controller {
   method run-promise(@commands) {
     # TODO run chain of commands instead of only first
     my $command = @commands.shift;
+    if (@commands.elems > 0) {
+
+    }
     Log::Any.debug("Executing " ~ $command[0] ~ " with " ~ $command[1..*].perl);
     my $proc = Proc::Async.new($command[0], $command[1..*], :r);
     $proc.stdout.tap( -> $str {
@@ -33,6 +36,8 @@ role SystemPackageManager::Abstract does SystemPackageManager::Controller {
       .result.exitcode == 0;
     })
   }
+
+
 
   method do-install (List $packages, Hash $options --> Promise) {
     self.run-promise(self.get-install-command($packages, $options));
