@@ -29,11 +29,17 @@ sub MAIN(
 		Str :$package-manager,
 	) {
 	my $spm = SystemPackageManager.new;
+	my $success = False;
 
 	if defined $package-manager {
-		Log::Any.emergency("Can't continue") if !$spm.setup($package-manager, $package-manager ~~ "::");
+		$success = $spm.setup($package-manager, $package-manager ~~ "::");
 	} else {
-		Log::Any.emergency("Can't continue") if !$spm.setup-for-this-system;
+		$success = $spm.setup-for-this-system;
+	}
+
+	if ! $success {
+		Log::Any.emergency('No suitable package manager found, can\'t continue');
+		exit(1);
 	}
 
 	given $action {

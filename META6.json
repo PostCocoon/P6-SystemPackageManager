@@ -13,7 +13,8 @@
   ],
   "auth": "github:PostCocoon",
   "depends": [
-    "Test::META"
+    "Test::META",
+    "Log::Any"
   ],
   "tags": [
 

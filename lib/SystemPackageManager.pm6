@@ -7,7 +7,7 @@ use Log::Any;
 
 class SystemPackageManager does SystemPackageManager::Controller {
   has $.available-package-managers is rw = [
-    'SystemPackageManager::xbps',
+    #'SystemPackageManager::xbps',
     'SystemPackageManager::apt-get'
   ];
 
@@ -28,10 +28,21 @@ class SystemPackageManager does SystemPackageManager::Controller {
           }
 
           when executable {
-            my $file = $qualifier.options<file>.IO;
-            if $file.f and $file.x {
-              $qualifies = True;
-              last;
+            my $file = $qualifier.options<file>;
+            if $file ~~ /<[\\ \/]>/ {
+              my $file-io = $qualifier.options<file>.IO;
+              if $file-io.f and $file-io.x {
+                $qualifies = True;
+                last;
+              }
+            } else {
+              for split ':', %*ENV<PATH> -> $path {
+                my $curr-file = $path.IO.child($file);
+                if $curr-file.f and $curr-file.x {
+                  $qualifies = True;
+                  last;
+                }
+              }
             }
           }
         }
@@ -46,6 +57,7 @@ class SystemPackageManager does SystemPackageManager::Controller {
     my $channel = Channel.new;
     for $.available-package-managers.values -> $package-manager {
       @promises.push: start {
+        Log::Any.debug("Trying module {$package-manager}");
         try require ::($package-manager);
         if ::($package-manager) ~~ Failure {
           Log::Any.debug("Couldn't find module {$package-manager}, skipping");
@@ -62,7 +74,13 @@ class SystemPackageManager does SystemPackageManager::Controller {
       my $found = start {
         $channel.receive();
       },
-      Promise.allof(@promises),
+      Promise.allof(@promises).then({
+        for @promises -> $promise {
+          if ($promise.status ~~ Broken) {
+            say $promise.cause;
+          }
+        }
+      }),
     ).then({
       # In case of race condition
       my $pm-name = $channel.poll;

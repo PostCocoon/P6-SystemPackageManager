@@ -47,7 +47,7 @@ class SystemPackageManager::apt-get does SystemPackageManager::Abstract {
       env => {
         DEBIAN_FRONTEND => "noninteractive"
       },
-      command => [ 'dpkg-query', "-Wf'\${db:Status-abbrev}'", $package ],
+      command => [ 'dpkg-query', "-Wf'\$\{db:Status-abbrev\}'", $package ],
       pipe-to => SystemPackageManager::CommandChain.new(
         command => [ 'grep', '-q', '^i' ]
       )

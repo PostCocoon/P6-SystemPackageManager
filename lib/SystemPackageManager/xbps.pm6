@@ -1,6 +1,7 @@
 use v6;
 use SystemPackageManager::Abstract;
 use SystemPackageManager::Qualifier;
+use SystemPackageManager::CommandChain;
 
 class SystemPackageManager::xbps does SystemPackageManager::Abstract {
   method get-qualifiers {
@@ -15,30 +16,30 @@ class SystemPackageManager::xbps does SystemPackageManager::Abstract {
     ];
   }
 
-  method get-sync-command (Hash $options --> List) {
+  method get-sync-command (Hash $options --> SystemPackageManager::CommandChain) {
     [
       ['xbps-install','-S'],
     ]
   }
 
-  method get-install-command (List $packages, Hash $options --> List) {
+  method get-install-command (List $packages, Hash $options --> SystemPackageManager::CommandChain) {
     [
       ['xbps-install', '-y', |$packages],
     ]
   }
 
-  method get-remove-command (List $packages, Hash $options --> List) {
+  method get-remove-command (List $packages, Hash $options --> SystemPackageManager::CommandChain) {
     [
       ['xbps-remove', '-y', |$packages],
     ]
   }
 
-  method get-is-installed-command (Str $package, Hash $options --> List) {
+  method get-is-installed-command (Str $package, Hash $options --> SystemPackageManager::CommandChain) {
     [
       ['xbps-query', $package],
     ]
   }
 
-  method is-distro-package-manager { True }
-  method needs-root { True }
+  method is-distro-package-manager (--> Bool) { True }
+  method needs-root (--> Bool) { True }
 }
