@@ -59,25 +59,20 @@ class SystemPackageManager::CommandChain {
     }
 
     method start() {
-      $.to.^find_method('start').wrap({
-        my $res = callsame;
-        start {
-          until $.to.started {
-            sleep(.1);
-          }
-
-          $!lock.protect({
-            $.to.print($!buffer);
-            $!emptied-buffer = True;
-
-            if $!done {
-              $.to.close-stdin;
-            }
-          });
+      start {
+        until $.to.started {
+          sleep(.1);
         }
 
-        $res
-      });
+        $!lock.protect({
+          $.to.print($!buffer);
+          $!emptied-buffer = True;
+
+          if $!done {
+            $.to.close-stdin;
+          }
+        });
+      }
 
       $.from.stderr;
       $.from.stdout.tap(-> $v {
