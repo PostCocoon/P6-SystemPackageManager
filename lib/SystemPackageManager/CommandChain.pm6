@@ -59,11 +59,7 @@ class SystemPackageManager::CommandChain {
     }
 
     method start() {
-      start {
-        until $.to.started {
-          sleep(.1);
-        }
-
+      $.to.ready.then({
         $!lock.protect({
           $.to.print($!buffer);
           $!emptied-buffer = True;
@@ -72,7 +68,7 @@ class SystemPackageManager::CommandChain {
             $.to.close-stdin;
           }
         });
-      }
+      });
 
       $.from.stderr;
       $.from.stdout.tap(-> $v {
