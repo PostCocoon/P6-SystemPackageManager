@@ -24,6 +24,7 @@ role SystemPackageManager::Abstract does SystemPackageManager::Controller {
 
 
   method do-install (List $packages, Hash $options --> Promise) {
+    Log::Any.debug("Installing " ~ $packages.perl ~ " with " ~ self.^name ~ " and options " ~ $options.perl);
     self.run-promise(self.get-install-command($packages, $options));
   }
 

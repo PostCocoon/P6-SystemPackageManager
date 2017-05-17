@@ -7,14 +7,7 @@ Vagrant.configure("2") do |config|
 apt update;
 apt install -yq build-essential;
 apt upgrade -yq;
-sudo -iu ubuntu bash <<BASH
-git clone https://github.com/tadzik/rakudobrew ~/.rakudobrew;
-eval "$(~/.rakudobrew/bin/rakudobrew init -)";
-echo 'eval "''$''"(~/.rakudobrew/bin/rakudobrew init -)"' >> ~/.profile;
-rakudobrew build moar;
-rakudobrew build zef;
-zef --depsonly --/test install /vagrant;
-BASH
+sudo -iu ubuntu bash -c 'git clone https://github.com/tadzik/rakudobrew ~/.rakudobrew; eval "$(~/.rakudobrew/bin/rakudobrew init -)";echo '"'"'eval "'"''"'$'"''"'(~/.rakudobrew/bin/rakudobrew init -)"'"'"' >> ~/.profile;rakudobrew build moar;rakudobrew build zef;zef --depsonly --/test install /vagrant;'
 SHELL
 
 	config.vm.provider "virtualbox" do |v|

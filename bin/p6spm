@@ -26,7 +26,8 @@ Log::Any.add( Log::Any::Adapter::Stderr.new, :formatter(MyOwnFormatter.new) );
 sub MAIN(
 		$action,
 		*@items,
-		Str :$package-manager,
+		Str :p(:$package-manager),
+		*%options
 	) {
 	my $spm = SystemPackageManager.new;
 	my $success = False;
@@ -44,7 +45,7 @@ sub MAIN(
 
 	given $action {
 		when 'sync' {
-			if ! await $spm.sync {
+			if ! await $spm.sync(%options) {
 				Log::Any.emergency('Failed to sync');
 				exit(1);
 			}
@@ -56,7 +57,7 @@ sub MAIN(
 				exit(1);
 			}
 
-			if ! await $spm.install(@items) {
+			if ! await $spm.install(@items, %options) {
 				Log::Any.emergency('Failed to install: ' ~ @items.join(', '));
 				exit(1);
 			}
@@ -68,7 +69,7 @@ sub MAIN(
 				exit(1);
 			}
 
-			if ! await $spm.remove(@items) {
+			if ! await $spm.remove(@items, %options) {
 				Log::Any.emergency('Failed to remove: ' ~ @items.join(', '));
 				exit(1);
 			}
@@ -81,7 +82,7 @@ sub MAIN(
 			}
 
 			my $item = @items.first;
-			if ! await $spm.is-installed($item) {
+			if ! await $spm.is-installed($item, %options) {
 				Log::Any.warning("$item is not installed");
 				exit(1);
 			} else {

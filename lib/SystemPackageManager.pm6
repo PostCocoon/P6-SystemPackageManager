@@ -7,7 +7,7 @@ use Log::Any;
 
 class SystemPackageManager does SystemPackageManager::Controller {
   has $.available-package-managers is rw = [
-    #'SystemPackageManager::xbps',
+    'SystemPackageManager::xbps',
     'SystemPackageManager::apt-get'
   ];
 
