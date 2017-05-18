@@ -17,15 +17,15 @@ class SystemPackageManager::xbps does SystemPackageManager::Abstract {
   }
 
   method get-sync-command (Hash $options --> SystemPackageManager::CommandChain) {
-    cmd("xbps-install", "-S")
+    cmd(<xbps-install -S>)
   }
 
   method get-install-command (List $packages, Hash $options --> SystemPackageManager::CommandChain) {
-    cmd("xbps-install", "-y", |$packages)
+    cmd(<xbps-install -y>, $packages)
   }
 
   method get-remove-command (List $packages, Hash $options --> SystemPackageManager::CommandChain) {
-    cmd("xbps-remove", "-y", |$packages);
+    cmd(<xbps-remove -y>, $packages);
   }
 
   method get-is-installed-command (Str $package, Hash $options --> SystemPackageManager::CommandChain) {

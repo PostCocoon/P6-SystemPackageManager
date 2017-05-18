@@ -44,7 +44,6 @@ class SystemPackageManager::CommandChain {
         });
       });
 
-      $from.stderr;
       $from.stdout.tap(-> $v {
         $lock.protect({
           if $emptied-buffer {
@@ -63,11 +62,27 @@ class SystemPackageManager::CommandChain {
       });
     }
 
+    method !log ($prog){
+      $prog.stderr.tap(-> $v {
+        for $v.lines -> $l {
+          Log::Any.debug($prog.path ~ " =ERR=> " ~ $l);
+        }
+      });
+
+      $prog.stdout.tap(-> $v {
+        for $v.lines -> $l {
+          Log::Any.debug($prog.path ~ " =OUT=> " ~ $l);
+        }
+      });
+    }
+
     method run() {
       my $current-chain = $.chain;
       my $prev-proc = Proc::Async.new(|$current-chain.command, :r);
       @.procs.push($prev-proc);
       my @promises = [];
+
+      self!log($prev-proc);
 
       while defined $current-chain.pipe-to {
         $current-chain = $current-chain.pipe-to;
@@ -76,6 +91,7 @@ class SystemPackageManager::CommandChain {
         @promises.push: $prev-proc.start();
         $.procs.push($proc);
         $prev-proc = $proc;
+        self!log($prev-proc);
       }
 
       $prev-proc.stdout;

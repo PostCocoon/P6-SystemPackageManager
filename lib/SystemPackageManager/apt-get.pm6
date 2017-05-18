@@ -17,7 +17,7 @@ class SystemPackageManager::apt-get does SystemPackageManager::Abstract {
 
   method get-sync-command (Hash $options --> SystemPackageManager::CommandChain) {
     cmd(
-      'apt-get', 'update',
+      <apt-get update>,
       env => {
         DEBIAN_FRONTEND => "noninteractive"
       }
@@ -26,7 +26,7 @@ class SystemPackageManager::apt-get does SystemPackageManager::Abstract {
 
   method get-install-command (List $packages, Hash $options --> SystemPackageManager::CommandChain) {
     cmd(
-      'apt-get', 'install', '-yq', |$packages,
+      <apt-get install -yq>, $packages,
       env => {
         DEBIAN_FRONTEND => "noninteractive"
       }
@@ -35,7 +35,7 @@ class SystemPackageManager::apt-get does SystemPackageManager::Abstract {
 
   method get-remove-command (List $packages, Hash $options --> SystemPackageManager::CommandChain) {
     cmd(
-      'apt-get', 'remove', '-yq', |$packages,
+      <apt-get remove -yq>, $packages,
       env => {
         DEBIAN_FRONTEND => "noninteractive"
       }
@@ -44,8 +44,7 @@ class SystemPackageManager::apt-get does SystemPackageManager::Abstract {
 
   method get-is-installed-command (Str $package, Hash $options --> SystemPackageManager::CommandChain) {
     cmd(
-      'dpkg-query', "-Wf", "\$\{db:Status-abbrev\}", $package,
-      pipe-to => cmd('grep', '-q', '^i'),
+      <dpkg-query -Wf>, "\$\{db:Status-abbrev\}", $package,
       env => {
         DEBIAN_FRONTEND => "noninteractive"
       }

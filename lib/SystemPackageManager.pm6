@@ -2,15 +2,10 @@ use v6;
 use SystemPackageManager::Abstract;
 use SystemPackageManager::Controller;
 use SystemPackageManager::Qualifier;
-use SystemPackageManager::xbps;
 use Log::Any;
 
 class SystemPackageManager does SystemPackageManager::Controller {
-  has $.available-package-managers is rw = [
-    'SystemPackageManager::xbps',
-    'SystemPackageManager::apt-get'
-  ];
-
+  has $.available-package-managers is rw = <SystemPackageManager::xbps SystemPackageManager::apt-get SystemPackageManager::pkgng>;
   has $.installed-package-managers is rw = [];
   has SystemPackageManager::Abstract $!selected;
 
@@ -139,10 +134,10 @@ class SystemPackageManager does SystemPackageManager::Controller {
   }
 
   method do-sync (Hash $options --> Promise) {
-    $!selected.do-sync($options)
+    $!selected.do-sync($options);
   }
 
   method do-is-installed (Str $package, Hash $options --> Promise) {
-    $!selected.do-is-installed($package, $options)
+    $!selected.do-is-installed($package, $options);
   }
 }
